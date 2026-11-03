@@ -2,6 +2,12 @@
 import { addCapture, addSkipped, clearAll, openDb, readStats } from "../lib/db";
 import { acceptCapture } from "../lib/messages";
 import { zipBase } from "../lib/names";
+import {
+  needsRegister,
+  orphanedZip,
+  planRecord,
+  startSession,
+} from "../lib/session";
 import type {
   CaptureInput,
   Command,
@@ -105,23 +111,25 @@ async function injectInto(origin: string, withPage: boolean): Promise<void> {
 async function record(origin: string): Promise<void> {
   const session = await getSession();
   const stats = await readStats(await db());
-  if (session && session.origin !== origin) {
-    if (stats.count > 0) {
-      return; // captures from another origin are pending
-    }
+  const plan = planRecord(session, stats.count, origin);
+  if (plan === "blocked") {
+    return; // captures from another origin are pending
+  }
+  if (plan === "fresh") {
     await clearAll(await db());
   }
   await register(origin);
-  await setSession({
-    origin,
-    recording: true,
-    startedAt: Date.now(),
-    zipping: false,
-    error: null,
-    version: chrome.runtime.getManifest().version,
-  });
+  await setSession(
+    startSession(
+      session,
+      plan,
+      origin,
+      Date.now(),
+      chrome.runtime.getManifest().version,
+    ),
+  );
   await injectInto(origin, true);
-  await setBadge(session?.origin === origin ? stats.count : 0);
+  await setBadge(plan === "resume" ? stats.count : 0);
 }
 
 async function stop(error: Session["error"] = null): Promise<void> {
@@ -228,18 +236,21 @@ async function download(): Promise<void> {
 /** Make registration, badge and flags match the stored session (browser start, extension update). */
 async function reconcile(updated: boolean): Promise<void> {
   const session = await getSession();
-  if (session?.recording) {
-    await register(session.origin);
-    if (updated) {
-      await injectInto(session.origin, false);
-    }
-    await setBadge((await readStats(await db())).count);
-  } else {
+  if (!session?.recording) {
     await unregister();
+    return;
   }
-  if (session?.zipping) {
-    await setSession({ ...session, zipping: false });
+  // scripts persist across restarts; re-registering would open a window in which restored tabs load uncaptured
+  const registered = await chrome.scripting.getRegisteredContentScripts({
+    ids: SCRIPT_IDS,
+  });
+  if (needsRegister(registered, session.origin)) {
+    await register(session.origin);
   }
+  if (updated) {
+    await injectInto(session.origin, false);
+  }
+  await setBadge((await readStats(await db())).count);
 }
 
 function commandTask(command: Command): () => Promise<void> {
@@ -272,6 +283,14 @@ function enqueue(task: () => Promise<void>): Promise<void> {
     );
   return queue;
 }
+
+// A worker that starts while a ZIP was being built lost it: end the download as failed.
+enqueue(async () => {
+  const { download: stored } = await chrome.storage.session.get("download");
+  if (orphanedZip(await getSession(), stored)) {
+    await finishDownload(false);
+  }
+});
 
 chrome.action
   .setBadgeBackgroundColor({ color: BADGE_COLOR })
