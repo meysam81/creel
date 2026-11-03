@@ -4,6 +4,9 @@
     "src/background/sw.ts",
     "src/popup/popup.ts"
   ],
+  "ignore": [
+    "src/lib/types.ts"
+  ],
   "ignoreDependencies": [
     "prettier"
   ],
