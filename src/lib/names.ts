@@ -2,8 +2,13 @@ import type { NameState } from "./types";
 
 /** File name (no extension) for a captured URL: its last path segment, made filesystem-safe. */
 export function baseName(url: string): string {
-  const segment =
-    new URL(url).pathname.split("/").findLast((s) => s !== "") ?? "";
+  let pathname = "";
+  try {
+    pathname = new URL(url).pathname;
+  } catch {
+    // a forged or broken URL still gets a file name
+  }
+  const segment = pathname.split("/").findLast((s) => s !== "") ?? "";
   let decoded = segment;
   try {
     decoded = decodeURIComponent(segment);

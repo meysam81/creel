@@ -15,8 +15,8 @@
   "name": "creel",
   "private": true,
   "scripts": {
-    "build": "vite build",
-    "check": "oxlint --fix --fix-suggestions && knip",
+    "build": "vite build && bun build src/capture/page.ts src/capture/relay.ts --format=iife --minify --outdir dist/capture",
+    "check": "oxlint --fix && knip",
     "start": "vite",
     "test": "bun test",
     "typecheck": "bunx tsc --noEmit"

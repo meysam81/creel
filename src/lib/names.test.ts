@@ -12,6 +12,9 @@ describe("baseName edge cases", () => {
     ["https://app.example.com/_requests", "_requests_"],
   ])("%s -> %s", (url, want) => expect(baseName(url)).toBe(want));
 
+  test("an unparsable URL names index", () =>
+    expect(baseName("not a url")).toBe("index"));
+
   test("caps at 100 characters", () =>
     expect(baseName(`https://app.example.com/${"a".repeat(150)}`)).toHaveLength(
       100,

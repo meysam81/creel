@@ -6,9 +6,6 @@
     "src/capture/page.ts",
     "src/capture/relay.ts"
   ],
-  "ignore": [
-    "src/lib/types.ts"
-  ],
   "ignoreDependencies": [
     "prettier"
   ],
