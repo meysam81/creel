@@ -1,0 +1,150 @@
+name: ci
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install deps
+        run: bun install --frozen-lockfile
+      - name: Run linters
+        run: bun run check
+
+  typecheck:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install deps
+        run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: bun run typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install deps
+        run: bun install --frozen-lockfile
+      - name: Test
+        run: bun test
+
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      artifact-name: ${{ steps.output.outputs.artifact-name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install deps
+        run: bun install --frozen-lockfile
+      - name: Build
+        run: bun run build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: error
+          name: creel-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist
+      - name: Output artifact name
+        id: output
+        run: |
+          echo "artifact-name=creel-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+  release-please:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release-please.outputs.releases_created }}
+      tag_name: ${{ steps.release-please.outputs.tag_name }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - id: release-please
+        name: Release please
+        uses: googleapis/release-please-action@v5
+        with:
+          release-type: node
+
+  publish:
+    # no-op until the Web Store item exists and its secrets and CHROME_EXTENSION_ID variable are set
+    if: needs.release-please.outputs.releases_created == 'true' && vars.CHROME_EXTENSION_ID != ''
+    needs: [release-please, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Download build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+          path: dist
+      - name: Install crx3
+        run: |
+          go install github.com/mediabuyerbot/go-crx3/crx3@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Write signing key
+        env:
+          CHROME_SIGNING_PRIVATE_KEY: ${{ secrets.CHROME_SIGNING_PRIVATE_KEY }}
+        run: |
+          echo "$CHROME_SIGNING_PRIVATE_KEY" > key.pem
+          chmod 400 key.pem
+          head -1 key.pem | grep -q "BEGIN PRIVATE KEY" || {
+            echo "ERROR: key is not PKCS#8 format (expected '-----BEGIN PRIVATE KEY-----')"
+            echo "Convert with: openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in old.pem -out new.pem"
+            exit 1
+          }
+      - name: Sign Chrome extension
+        run: |
+          crx3 pack dist -p key.pem -o creel.crx
+          ls -lh creel.crx
+      - name: Create ZIP for Chrome Web Store
+        run: |
+          (cd dist && zip -r ../creel.zip .)
+          ls -lh creel.zip
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+        run: gh release upload "$TAG_NAME" creel.crx creel.zip --clobber
+      - name: Publish to Chrome Web Store
+        run: ./scripts/publish-chrome-webstore.sh creel.crx
+        env:
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          PUBLISH: "true"
+      - if: always()
+        name: Cleanup
+        run: rm -f key.pem

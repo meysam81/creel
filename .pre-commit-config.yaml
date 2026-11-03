@@ -27,6 +27,8 @@ repos:
         args:
           - --allow-missing-credentials
       - id: detect-private-key
+        # ci.yml checks the signing key's format by grepping for its PEM header
+        exclude: ^\.github/workflows/ci\.yml$
       - id: end-of-file-fixer
       - id: fix-byte-order-marker
       - id: mixed-line-ending
