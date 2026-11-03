@@ -1,0 +1,38 @@
+# dependencies (bun install)
+node_modules
+
+# output
+out
+dist
+*.tgz
+
+# code coverage
+coverage
+*.lcov
+
+# logs
+logs
+*.log
+
+# dotenv environment variable files
+.env
+.env.*
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# editors and OS
+.idea
+.DS_Store
+
+# Chrome extension signing and packaging
+*.pem
+*.crx
+*.zip
+*.bk
+.secrets
+
+# local design notes
+docs/superpowers
