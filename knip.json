@@ -2,7 +2,9 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "src/background/sw.ts",
-    "src/popup/popup.ts"
+    "src/popup/popup.ts",
+    "src/capture/page.ts",
+    "src/capture/relay.ts"
   ],
   "ignore": [
     "src/lib/types.ts"
