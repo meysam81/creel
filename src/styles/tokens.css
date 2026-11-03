@@ -1,0 +1,26 @@
+:root {
+  color-scheme: light dark;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --color-bg: light-dark(#ffffff, #18181b);
+  --color-surface: light-dark(#f4f4f5, #27272a);
+  --color-border: light-dark(#e4e4e7, #3f3f46);
+  --color-text: light-dark(#18181b, #f4f4f5);
+  --color-text-muted: light-dark(#71717a, #a1a1aa);
+  --color-accent: light-dark(#0f766e, #2dd4bf);
+  --color-accent-hover: light-dark(#115e59, #5eead4);
+  --color-on-accent: light-dark(#ffffff, #042f2e);
+  --color-rec: light-dark(#dc2626, #f87171);
+  --color-focus: light-dark(#0f766e, #5eead4);
+}
