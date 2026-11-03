@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "fflate": "^0.8.3"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^3.0.0",
+    "@types/bun": "^1.4.4",
+    "@types/chrome": "^0.3.7",
+    "knip": "^6.44.1",
+    "oxlint": "^1.90.0",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "name": "creel",
+  "private": true,
+  "scripts": {
+    "build": "vite build && bun build src/capture/page.ts src/capture/relay.ts --format=iife --minify --outdir dist/capture",
+    "check": "oxlint --fix && knip",
+    "start": "vite",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "type": "module",
+  "version": "0.1.0"
+}

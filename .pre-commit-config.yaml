@@ -1,3 +1,4 @@
+default_stages: [pre-commit]
 repos:
   - repo: https://github.com/oxc-project/mirrors-oxlint
     rev: v1.80.0
@@ -26,6 +27,8 @@ repos:
         args:
           - --allow-missing-credentials
       - id: detect-private-key
+        # ci.yml checks the signing key's format by grepping for its PEM header
+        exclude: ^\.github/workflows/ci\.yml$
       - id: end-of-file-fixer
       - id: fix-byte-order-marker
       - id: mixed-line-ending
@@ -52,3 +55,22 @@ repos:
     rev: v8.30.1
     hooks:
       - id: gitleaks
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        language: system
+        pass_filenames: true
+        entry: bunx prettier -u --write
+      - id: typecheck
+        name: typecheck
+        language: system
+        pass_filenames: false
+        entry: bunx tsc --noEmit
+        types: [ts]
+      - id: bun-check
+        name: bun-check
+        language: system
+        pass_filenames: false
+        entry: bun run check
+        always_run: true

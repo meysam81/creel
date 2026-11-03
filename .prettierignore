@@ -1,0 +1,4 @@
+.oxlintrc.json
+tsconfig.json
+node_modules
+knip.json
