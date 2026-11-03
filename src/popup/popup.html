@@ -10,7 +10,21 @@
     <header class="header">
       <img class="logo" src="../../icons/icon-48.png" alt="" />
       <span class="title">Creel</span>
+      <span id="pill" class="pill" hidden></span>
     </header>
+    <p id="origin" class="origin" hidden></p>
+    <p id="stats" class="stats" hidden></p>
+    <ol id="recent" class="recent" aria-label="Latest captures"></ol>
+    <div class="actions">
+      <button type="button" id="primary" class="btn btn-primary">Record</button>
+      <button type="button" id="download" class="btn btn-secondary" disabled>
+        Download ZIP
+      </button>
+    </div>
+    <div class="footer">
+      <p id="message" class="message" role="status"></p>
+      <button type="button" id="clear" class="link" disabled>Clear</button>
+    </div>
     <script type="module" src="popup.ts"></script>
   </body>
 </html>

@@ -24,6 +24,7 @@ export default defineManifest({
     type: "module",
   },
   permissions: [
+    "activeTab",
     "storage",
     "unlimitedStorage",
     "scripting",
