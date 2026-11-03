@@ -1,31 +1,18 @@
 // Runs in the extension's isolated world: forwards the page script's captures to the service worker.
-import { parsePageMessage } from "../lib/messages";
-import type { WorkerMessage } from "../lib/types";
+import { makeRelay } from "./forward";
 
 type Listener = (event: MessageEvent) => void;
 const scope = globalThis as typeof globalThis & { __creelRelay?: Listener };
 
-function stop(): void {
-  window.removeEventListener("message", relay);
-}
+const forward = makeRelay({
+  send: (msg) => chrome.runtime.sendMessage(msg),
+  alive: () => chrome.runtime?.id !== undefined,
+  stop: () => window.removeEventListener("message", relay),
+});
 
 function relay(event: MessageEvent): void {
-  if (event.source !== window) {
-    return;
-  }
-  const msg = parsePageMessage(event.data);
-  if (!msg) {
-    return;
-  }
-  const out: WorkerMessage =
-    msg.kind === "capture"
-      ? { type: "capture", capture: msg.capture }
-      : { type: "skipped" };
-  try {
-    chrome.runtime.sendMessage(out).catch(stop);
-  } catch {
-    // the extension was reloaded or removed: this relay is dead
-    stop();
+  if (event.source === window) {
+    forward(event.data);
   }
 }
 

@@ -53,44 +53,67 @@ function emit(ctx: PageCtx, req: Req, status: number, text: string): void {
   }
 }
 
+/** Response types never worth reading as text. */
+const BINARY =
+  /^(?:image|video|audio|font)\/|^application\/(?:octet-stream|zip|pdf)/i;
+
+interface Pending {
+  url: string;
+  method: string;
+  body: Promise<string | null>;
+}
+
+function captureResponse(ctx: PageCtx, target: Pending, res: Response): void {
+  if (Number(res.headers.get("content-length")) > MAX_BODY_CHARS) {
+    ctx.post({ source: "creel", kind: "skipped" });
+    return;
+  }
+  if (BINARY.test(res.headers.get("content-type") ?? "")) {
+    return;
+  }
+  // clone before the page can consume the body
+  const copy = res.clone();
+  Promise.all([target.body, copy.text()]).then(
+    ([body, text]) =>
+      emit(
+        ctx,
+        { url: target.url, method: target.method, body },
+        res.status,
+        text,
+      ),
+    () => undefined,
+  );
+}
+
 /** Wrap the page's fetch: the page always gets its own Response, and same-site JSON is posted. */
 export function wrapFetch(fetch0: typeof fetch, ctx: PageCtx): typeof fetch {
   async function creelFetch(
     input: RequestInfo | URL,
     init?: RequestInit,
   ): Promise<Response> {
-    let req: Req | null = null;
+    let target: Pending | null = null;
     try {
       const request = input instanceof Request ? input : null;
       const url = resolve(ctx, request ? request.url : String(input));
       if (url && sameSite(ctx.location.hostname, url.hostname)) {
         const method = (init?.method ?? request?.method ?? "GET").toUpperCase();
-        let body = requestBodyText(init?.body);
+        let body = Promise.resolve(requestBodyText(init?.body));
         if (request && method !== "GET" && init?.body === undefined) {
-          body = await request
+          // clone now, finish reading later: a streaming upload must never wait on Creel
+          body = request
             .clone()
             .text()
             .catch(() => null);
         }
-        req = { url: url.href, method, body };
+        target = { url: url.href, method, body };
       }
     } catch {
-      req = null;
+      target = null;
     }
     const res = await fetch0(input, init);
-    if (req) {
-      const captured = req;
+    if (target) {
       try {
-        // clone before the page can consume the body
-        res
-          .clone()
-          .text()
-          .then(
-            (text) => emit(ctx, captured, res.status, text),
-            () => {
-              /* empty */
-            },
-          );
+        captureResponse(ctx, target, res);
       } catch {
         // an unclonable response is left alone
       }
@@ -100,9 +123,32 @@ export function wrapFetch(fetch0: typeof fetch, ctx: PageCtx): typeof fetch {
   return creelFetch as typeof fetch;
 }
 
-const pending = new WeakMap<XMLHttpRequest, { method: string; url: string }>();
+const opened = new WeakMap<XMLHttpRequest, { method: string; url: string }>();
+const inFlight = new WeakMap<XMLHttpRequest, Req>();
+const listening = new WeakSet<XMLHttpRequest>();
 
-/** Patch XMLHttpRequest the way the console capture did: record open(), read the body on load. */
+function onXhrLoad(ctx: PageCtx, xhr: XMLHttpRequest): void {
+  try {
+    const req = inFlight.get(xhr);
+    inFlight.delete(xhr);
+    if (!req) {
+      return;
+    }
+    let text: string | null = null;
+    if (xhr.responseType === "" || xhr.responseType === "text") {
+      text = xhr.responseText;
+    } else if (xhr.responseType === "json") {
+      text = JSON.stringify(xhr.response);
+    }
+    if (text !== null) {
+      emit(ctx, req, xhr.status, text);
+    }
+  } catch {
+    // never reach the page
+  }
+}
+
+/** Patch XMLHttpRequest: record open(), read the body on load. One listener per object, so a reused object captures each response once. */
 export function patchXhr(proto: XMLHttpRequest, ctx: PageCtx): void {
   const open0 = proto.open;
   const send0 = proto.send;
@@ -111,10 +157,11 @@ export function patchXhr(proto: XMLHttpRequest, ctx: PageCtx): void {
     ...args: [string, string | URL, ...unknown[]]
   ) {
     try {
-      pending.set(this, {
+      opened.set(this, {
         method: String(args[0]).toUpperCase(),
         url: String(args[1]),
       });
+      inFlight.delete(this);
     } catch {
       // never block the page's request
     }
@@ -125,29 +172,18 @@ export function patchXhr(proto: XMLHttpRequest, ctx: PageCtx): void {
     body?: Document | XMLHttpRequestBodyInit | null,
   ) {
     try {
-      const meta = pending.get(this);
+      const meta = opened.get(this);
       const url = meta ? resolve(ctx, meta.url) : null;
       if (meta && url && sameSite(ctx.location.hostname, url.hostname)) {
-        const req: Req = {
+        inFlight.set(this, {
           url: url.href,
           method: meta.method,
           body: requestBodyText(body),
-        };
-        this.addEventListener("load", () => {
-          try {
-            let text: string | null = null;
-            if (this.responseType === "" || this.responseType === "text") {
-              text = this.responseText;
-            } else if (this.responseType === "json") {
-              text = JSON.stringify(this.response);
-            }
-            if (text !== null) {
-              emit(ctx, req, this.status, text);
-            }
-          } catch {
-            // never reach the page
-          }
         });
+        if (!listening.has(this)) {
+          listening.add(this);
+          this.addEventListener("load", () => onXhrLoad(ctx, this));
+        }
       }
     } catch {
       // never block the page's request
