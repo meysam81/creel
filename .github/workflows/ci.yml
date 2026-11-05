@@ -4,13 +4,24 @@ on:
   pull_request:
     branches:
       - main
+    # edited: fixing the PR title re-runs the title check
+    types: [opened, synchronize, reopened, edited]
   push:
     branches:
       - main
 
+# A new push to a PR replaces its running checks; main keeps every run (release-please reads it).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Deny by default; each job asks for what it needs.
+permissions: {}
+
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -25,6 +36,7 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -39,6 +51,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -53,6 +66,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     outputs:
@@ -77,9 +91,81 @@ jobs:
         run: |
           echo "artifact-name=creel-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - name: Install deps
+        run: bun install --frozen-lockfile
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: Build
+        run: bun run build
+      - name: End-to-end tests
+        run: bun run e2e
+      - if: failure()
+        name: Upload test results
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results
+          if-no-files-found: ignore
+
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    steps:
+      # release-please reads the squash-merge commit, which is the PR title
+      - name: Conventional PR title
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          types: |
+            feat
+            fix
+            perf
+            revert
+            build
+            deps
+            chore
+            ci
+            docs
+            refactor
+            test
+            style
+
+  # The one status to require in branch protection.
+  required:
+    name: required checks
+    if: always()
+    needs: [lint, typecheck, test, build, e2e, pr-title]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job passed or was skipped
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          case " $RESULTS " in
+            *" failure "* | *" cancelled "*) exit 1 ;;
+          esac
+
   release-please:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [required]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       releases_created: ${{ steps.release-please.outputs.releases_created }}
       tag_name: ${{ steps.release-please.outputs.tag_name }}
@@ -95,11 +181,14 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  publish:
+  # Attaches the package to the GitHub release. It never talks to the Web Store: submitting is
+  # the manual publish workflow, so a release cannot reach users without a person starting it.
+  release-assets:
     # no-op until the Web Store item exists and its secrets and CHROME_EXTENSION_ID variable are set
     if: needs.release-please.outputs.releases_created == 'true' && vars.CHROME_EXTENSION_ID != ''
     needs: [release-please, build]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -141,14 +230,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
         run: gh release upload "$TAG_NAME" creel.crx creel.zip --clobber
-      - name: Publish to Chrome Web Store
-        run: ./scripts/publish-chrome-webstore.sh creel.crx
-        env:
-          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-          PUBLISH: "true"
       - if: always()
         name: Cleanup
         run: rm -f key.pem
