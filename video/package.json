@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "@remotion/cli": "4.0.534",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.534"
+  },
+  "description": "Creel store promo video: Remotion around the extension's real UI",
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "6.0.3"
+  },
+  "name": "creel-promo-video",
+  "private": true,
+  "scripts": {
+    "render": "remotion render Promo ../store/video/promo-2160p.mp4 --scale=2 && remotion still Thumbnail ../store/video/thumbnail-1280x720.png",
+    "start": "remotion studio",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module"
+}
