@@ -1,6 +1,5 @@
 /**
- * Captures for the promo video: VIDEO=1 bunx playwright test e2e/video.spec.ts
- * renders the real popup at 6x into video/public/, one image per state, with the
+ * Captures for the promo video: `bun run video` renders the real popup at 6x into video/public/, one image per state, with the
  * position of every part the camera visits. Remotion animates around these frames.
  */
 import { copyFile, mkdir, writeFile } from "node:fs/promises";

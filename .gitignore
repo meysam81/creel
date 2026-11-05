@@ -47,4 +47,7 @@ video/out
 
 # captured by e2e/video.spec.ts (VIDEO=1); regenerate, do not commit
 video/public/*.png
+video/public/captures.json
 store/video/
+# rendered by `bun run store`; each release attaches a fresh set
+store/screenshots/

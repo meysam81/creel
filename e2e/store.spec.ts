@@ -1,10 +1,8 @@
 /**
- * Store images from the real UI: STORE=1 bunx playwright test e2e/store.spec.ts
- * writes 1280x800 screenshots and the 440x280 and 1400x560 tiles.
- *
- * Copy to e2e/store.spec.ts and edit CONFIG. Use example.com, example.net and
- * example.org in every shot, so no real company appears. Every UI shot is placed
- * 1:1 at 1x: resampling it would blur the text.
+ * Store images from the real UI: `bun run store` writes 1280x800 screenshots and the
+ * 440x280 and 1400x560 tiles. Use example.com, example.net and example.org in every shot,
+ * so no real company appears. Every UI shot is placed 1:1 at 1x: resampling it would blur
+ * the text.
  */
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";

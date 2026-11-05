@@ -21,8 +21,10 @@
     "check": "oxlint --fix && knip",
     "e2e": "playwright test",
     "start": "vite",
+    "store": "bun run build && STORE=1 playwright test e2e/store.spec.ts",
     "test": "bun test",
-    "typecheck": "bunx tsc --noEmit"
+    "typecheck": "bunx tsc --noEmit",
+    "video": "bun run build && VIDEO=1 playwright test e2e/video.spec.ts && cd video && bun install --frozen-lockfile && bun run render"
   },
   "type": "module",
   "version": "0.1.0"
