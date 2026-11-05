@@ -56,7 +56,7 @@ How it works:
 
 It keeps fetch and XMLHttpRequest responses that are JSON objects or arrays and come from the same domain as the page: subdomains count, other domains do not. Binary files, other domains and embedded frames are not recorded.
 
-Privacy: while you record, the responses, URLs and text request bodies of the website you chose are read. They can contain personal data from it. They stay in your browser until you download or clear them, and nothing is sent to any server. There is no account and no analytics, and the stored data is not encrypted. Full policy: https://github.com/meysam81/creel#privacy
+Privacy: while you record, the responses, URLs and text request bodies of the website you chose are read. They can hold whatever the site returns, including personal data and credentials. All of it stays on your device until you download or clear it, and nothing is sent to any server. There is no account and no analytics, and the stored data is not encrypted. Full policy: https://github.com/meysam81/creel#privacy
 ```
 
 ### Single purpose
@@ -86,7 +86,15 @@ No. All code ships in the package; Creel makes no network request of its own.
 ### Data usage
 
 ```plaintext
-Undecided: the owner decides after reading the dashboard descriptions (recorded in store/facts.md). Data handled (see store/facts.md): response bodies, request URLs and text request bodies of the recorded site, the page address, the site chosen, and the recording state. All of it stays on the device. Candidate boxes: User activity, Web history, Website content, and, because recorded responses can carry them, Authentication information, Personally identifiable information, Personal communications, Financial and payment information. Certifications: tick all three only when each is true: not sold to third parties, not used for purposes unrelated to the single purpose, not used for creditworthiness or lending.
+Tick five boxes (decided by the owner, 2026-11-05; reasons in store/facts.md):
+- Website content: the response bodies of the recorded site
+- User activity: recording fetch and XHR calls fits "network monitoring"
+- Web history: request and page URLs with their capture times
+- Authentication information: request bodies are kept unredacted, so a recorded login holds its credentials
+- Personally identifiable information: names and email addresses in logged-in responses
+Leave unticked: Personal communications, Health information, Financial and payment information, Location.
+Certifications: tick all three. They stand: user data is not sold or transferred to third parties, not used for anything unrelated to the single purpose, and not used for creditworthiness or lending.
+All of it stays on the device.
 ```
 
 ### Test instructions
@@ -117,7 +125,7 @@ How it works:
 
 It keeps fetch and XMLHttpRequest responses that are JSON objects or arrays and come from the same domain as the page: subdomains count, other domains do not. Binary files, other domains and embedded frames are not recorded.
 
-Privacy: while you record, the responses, URLs and text request bodies of the website you chose are read. They can contain personal data from it. They stay in your browser until you download or clear them, and nothing is sent to any server. There is no account and no analytics, and the stored data is not encrypted. Full policy: https://github.com/meysam81/creel#privacy
+Privacy: while you record, the responses, URLs and text request bodies of the website you chose are read. They can hold whatever the site returns, including personal data and credentials. All of it stays on your device until you download or clear it, and nothing is sent to any server. There is no account and no analytics, and the stored data is not encrypted. Full policy: https://github.com/meysam81/creel#privacy
 ```
 
 ### Notes for certification
@@ -151,7 +159,7 @@ Creel is an API response recorder. Press Record on a website and browse as usual
 - Same-domain responses only: subdomains count, other domains do not
 - Stop and resume, a live count, and Clear
 
-Data: while you record, the responses, URLs and text request bodies of the website you chose are read. They can contain personal data from it. They are stored in your browser until you download or clear them, and are not transmitted anywhere. They are not encrypted. Policy: https://github.com/meysam81/creel#privacy
+Data: while you record, the responses, URLs and text request bodies of the website you chose are read. They can hold whatever the site returns, including personal data and credentials. All of it stays on the device until you download or clear it, and is not transmitted anywhere. They are not encrypted. Policy: https://github.com/meysam81/creel#privacy
 ```
 
 ### Reviewer notes

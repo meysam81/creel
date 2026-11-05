@@ -168,7 +168,7 @@ test("copy is verbatim", () => {
     "Download or clear the https://app.example.com captures first.",
   );
   expect(COPY.CONSENT).toBe(
-    "Creel keeps the JSON responses a site makes while you record it, with their URLs and request bodies. These can include personal data from that site. They stay in this browser until you download or clear them, and Creel sends them nowhere.",
+    "Creel keeps the JSON responses a site makes while you record it, with their URLs and request bodies. These can hold whatever the site returns, including personal data and credentials. All of it stays on this device until you download or clear it, and Creel sends it nowhere.",
   );
   expect(COPY.denied(A)).toBe(
     "Creel needs access to https://app.example.com to record it.",

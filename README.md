@@ -41,16 +41,17 @@ JSON responses that the pages of that site receive from the same site. For each
 one it keeps the response body, the request URL (query string included), the
 request method, the request body when it is text, the status, the address of the
 page that made the request, and the time. It also keeps the site you chose and
-the state of the recording. These can include personal data from that site,
-such as names, messages, account details or tokens, if the site's own responses
-contain them. Creel does not look inside them or pick anything out.
+the state of the recording. A response or a request body can hold whatever the
+site returns or sends, including personal data (names, email addresses) and
+credentials (a recorded login holds the password or token that was sent). Creel
+does not look inside them, redact them or pick anything out.
 
 **What it is used for.** Only to build the ZIP you ask for, and to show a count
 and the latest file names in the popup. Nothing else uses it.
 
 **Where it goes.** Nowhere. Creel makes no network request of its own, has no
-account, no analytics and no server. The recorded data stays in your browser's
-extension storage (IndexedDB and `chrome.storage`) until you press **Clear**.
+account, no analytics and no server. All of it stays on your device, in your browser's
+extension storage (IndexedDB and `chrome.storage`), until you press **Clear**.
 The ZIP is saved to your Downloads folder, in `creel/`, when you press
 **Download ZIP**. Creel does not encrypt the stored data or the ZIP: anyone with
 access to your browser profile or to the file can read it. What you do with the
