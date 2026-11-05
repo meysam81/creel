@@ -1,7 +1,7 @@
 default_stages: [pre-commit]
 repos:
   - repo: https://github.com/oxc-project/mirrors-oxlint
-    rev: v1.80.0
+    rev: v1.89.0
     hooks:
       - id: oxlint
         verbose: false
@@ -42,7 +42,7 @@ repos:
           )$
       - id: trailing-whitespace
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.26.0
+    rev: v9.27.0
     hooks:
       - id: commitlint
         stages: [commit-msg]
