@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { looksLikeJson, recordableOrigin, sameSite } from "./site";
+import { looksLikeJson, recordableOrigin, maybeSameSite } from "./site";
 
 test.each([
   ["app.example.com", "app.example.com", true],
@@ -10,7 +10,13 @@ test.each([
   ["127.0.0.1", "127.0.0.2", false],
   ["[::1]", "[::1]", true],
   ["localhost", "api.localhost", false],
-])("sameSite(%s, %s) = %p", (a, b, want) => expect(sameSite(a, b)).toBe(want));
+  ["example.com.", "api.example.com", true],
+  // the prefilter lets these through on purpose: same-site.ts rejects them
+  ["example.co.uk", "other.co.uk", true],
+  ["a.github.io", "b.github.io", true],
+])("maybeSameSite(%s, %s) = %p", (a, b, want) =>
+  expect(maybeSameSite(a, b)).toBe(want),
+);
 
 test.each([
   ['{"a":1}', true],

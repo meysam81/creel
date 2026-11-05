@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { acceptCapture, parsePageMessage } from "./messages";
-import type { Session } from "./types";
+import { parsePageMessage } from "./messages";
 
 const capture = {
   url: "https://app.example.com/v4/getItems",
@@ -18,7 +17,11 @@ describe("parsePageMessage", () => {
   });
 
   test("accepts a skipped notice", () => {
-    const msg = { source: "creel", kind: "skipped" } as const;
+    const msg = {
+      source: "creel",
+      kind: "skipped",
+      url: capture.url,
+    } as const;
     expect(parsePageMessage(msg)).toBe(msg);
   });
 
@@ -32,7 +35,8 @@ describe("parsePageMessage", () => {
   test.each([
     ["null", null],
     ["a string", "str"],
-    ["another source", { source: "other", kind: "skipped" }],
+    ["another source", { source: "other", kind: "skipped", url: capture.url }],
+    ["a skipped notice without a URL", { source: "creel", kind: "skipped" }],
     [
       "a capture missing text",
       { source: "creel", kind: "capture", capture: noText },
@@ -50,29 +54,4 @@ describe("parsePageMessage", () => {
       { source: "creel", kind: "capture", capture: { ...capture, body: 5 } },
     ],
   ])("rejects %s", (_label, data) => expect(parsePageMessage(data)).toBeNull());
-});
-
-describe("acceptCapture", () => {
-  const origin = "https://app.example.com";
-  const session = (recording: boolean): Session => ({
-    origin,
-    recording,
-    startedAt: 0,
-    zipping: false,
-    error: null,
-    version: "0.1.0",
-  });
-
-  test("accepts the recorded origin while recording", () =>
-    expect(acceptCapture(session(true), origin)).toBe(true));
-  test("drops when not recording", () =>
-    expect(acceptCapture(session(false), origin)).toBe(false));
-  test("drops another origin", () =>
-    expect(acceptCapture(session(true), "https://other.example.org")).toBe(
-      false,
-    ));
-  test("drops without a session", () =>
-    expect(acceptCapture(null, origin)).toBe(false));
-  test("drops an unknown sender", () =>
-    expect(acceptCapture(session(true), undefined)).toBe(false));
 });

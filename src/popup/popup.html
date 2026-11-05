@@ -14,14 +14,18 @@
     </header>
     <p id="origin" class="origin" hidden></p>
     <p id="stats" class="stats" hidden></p>
+    <section id="consent" class="consent" hidden>
+      <p id="consent-text" class="consent-text"></p>
+      <button type="button" id="accept" class="btn btn-primary"></button>
+    </section>
     <ol id="recent" class="recent" aria-label="Latest captures"></ol>
-    <div class="actions">
+    <div id="actions" class="actions">
       <button type="button" id="primary" class="btn btn-primary">Record</button>
       <button type="button" id="download" class="btn btn-secondary" disabled>
         Download ZIP
       </button>
     </div>
-    <div class="footer">
+    <div id="footer" class="footer">
       <p id="message" class="message" role="status"></p>
       <button type="button" id="clear" class="link" disabled>Clear</button>
     </div>

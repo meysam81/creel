@@ -2,6 +2,9 @@ import { recordableOrigin } from "../lib/site";
 import type { Session, Stats } from "../lib/types";
 
 export const COPY = {
+  CONSENT:
+    "Creel keeps the JSON responses a site makes while you record it, with their URLs and request bodies. These can hold whatever the site returns, including personal data and credentials. All of it stays on this device until you download or clear it, and Creel sends it nowhere.",
+  ACCEPT: "I understand",
   EMPTY: "Open the site you want to record, then press Record.",
   UNSUPPORTED: "Creel can't record this page.",
   STORAGE: "Storage is full. Download and clear to keep recording.",
@@ -14,6 +17,8 @@ export interface PopupInput {
   session: Session | null;
   stats: Stats;
   tabUrl: string | undefined;
+  /** The first-run notice was accepted. */
+  consented: boolean;
 }
 
 export interface PopupView {
@@ -25,12 +30,19 @@ export interface PopupView {
   downloadLabel: "Download ZIP" | "Preparing ZIP...";
   clearDisabled: boolean;
   message: string | null;
+  /** Show the first-run notice instead of Record: nothing has been recorded yet. */
+  consent: boolean;
 }
 
 const ERROR_COPY = { storage: COPY.STORAGE, download: COPY.DOWNLOAD };
 
 /** What the popup shows and allows, from the session, its captures and the active tab. */
-export function deriveView({ session, stats, tabUrl }: PopupInput): PopupView {
+export function deriveView({
+  session,
+  stats,
+  tabUrl,
+  consented,
+}: PopupInput): PopupView {
   const tab = recordableOrigin(tabUrl);
   const zipping = session?.zipping ?? false;
   const download = {
@@ -48,6 +60,20 @@ export function deriveView({ session, stats, tabUrl }: PopupInput): PopupView {
       ...download,
       clearDisabled: true,
       message: error,
+      consent: false,
+    };
+  }
+
+  if (!consented && session === null) {
+    return {
+      pill: "none",
+      origin: tab,
+      primary: "record",
+      primaryDisabled: true,
+      ...download,
+      clearDisabled: true,
+      message: null,
+      consent: true,
     };
   }
 
@@ -69,6 +95,7 @@ export function deriveView({ session, stats, tabUrl }: PopupInput): PopupView {
     ...download,
     clearDisabled: pending === null || zipping,
     message,
+    consent: false,
   };
 }
 

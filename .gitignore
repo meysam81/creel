@@ -36,3 +36,15 @@ logs
 
 # local design notes
 docs/superpowers
+
+# Playwright
+test-results
+playwright-report
+
+# promo video renders
+video/out
+*.mp4
+
+# captured by e2e/video.spec.ts (VIDEO=1); regenerate, do not commit
+video/public/*.png
+store/video/

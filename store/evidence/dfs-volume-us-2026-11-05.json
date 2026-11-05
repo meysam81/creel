@@ -1,0 +1,92 @@
+{
+  "captured": "2026-11-05",
+  "id": "11051032-1348-0367-0000-ce2a11d7fa69",
+  "items": [
+    {
+      "competition": "LOW",
+      "competition_index": 7,
+      "keyword": "api recorder",
+      "monthly_searches": {
+        "2025-10": 30,
+        "2025-11": 20,
+        "2025-12": 20,
+        "2026-01": 30,
+        "2026-02": 30,
+        "2026-03": 40,
+        "2026-04": 30,
+        "2026-05": 20,
+        "2026-06": 10,
+        "2026-07": 20,
+        "2026-08": 20,
+        "2026-09": 30
+      },
+      "search_volume": 30
+    },
+    {
+      "keyword": "api response recorder"
+    },
+    {
+      "keyword": "api call recorder"
+    },
+    {
+      "keyword": "save api responses"
+    },
+    {
+      "keyword": "download api responses"
+    },
+    {
+      "keyword": "network request recorder"
+    },
+    {
+      "competition": "LOW",
+      "competition_index": 6,
+      "cpc": 7.64,
+      "keyword": "json downloader",
+      "monthly_searches": {
+        "2025-10": 320,
+        "2025-11": 260,
+        "2025-12": 320,
+        "2026-01": 320,
+        "2026-02": 320,
+        "2026-03": 320,
+        "2026-04": 320,
+        "2026-05": 260,
+        "2026-06": 260,
+        "2026-07": 260,
+        "2026-08": 260,
+        "2026-09": 260
+      },
+      "search_volume": 320
+    },
+    {
+      "keyword": "xhr capture"
+    },
+    {
+      "competition": "LOW",
+      "competition_index": 1,
+      "cpc": 4.95,
+      "keyword": "har file",
+      "monthly_searches": {
+        "2025-11": 4400,
+        "2025-12": 3600,
+        "2026-01": 3600,
+        "2026-02": 3600,
+        "2026-03": 4400,
+        "2026-04": 4400,
+        "2026-05": 3600,
+        "2026-06": 4400,
+        "2026-07": 4400,
+        "2026-08": 4400,
+        "2026-09": 5400
+      },
+      "search_volume": 4400
+    },
+    {
+      "keyword": "capture api responses"
+    }
+  ],
+  "language": "en",
+  "location": "United States",
+  "note": "raw items; keywords with no volume had no data fields",
+  "tool": "kw_data_google_ads_search_volume"
+}

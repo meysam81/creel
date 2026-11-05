@@ -22,6 +22,7 @@ const view = (over: Partial<PopupView>): PopupView => ({
   downloadLabel: "Download ZIP",
   clearDisabled: true,
   message: null,
+  consent: false,
   ...over,
 });
 
@@ -33,6 +34,18 @@ describe("deriveView", () => {
       0,
       `${A}/x`,
       view({ origin: A, message: COPY.EMPTY }),
+    ],
+    [
+      "first run: the notice comes before Record",
+      null,
+      0,
+      `${A}/x`,
+      view({
+        origin: A,
+        primaryDisabled: true,
+        consent: true,
+        message: null,
+      }),
     ],
     [
       "no session on chrome://",
@@ -120,11 +133,26 @@ describe("deriveView", () => {
         message: COPY.DOWNLOAD,
       }),
     ],
-  ])("%s", (_label, session, count, tabUrl, want) =>
+  ])("%s", (label, session, count, tabUrl, want) =>
     expect(
-      deriveView({ session, stats: { ...emptyStats(), count }, tabUrl }),
+      deriveView({
+        session,
+        stats: { ...emptyStats(), count },
+        tabUrl,
+        consented: !label.startsWith("first run"),
+      }),
     ).toEqual(want),
   );
+
+  test("a session that already exists is never hidden behind the notice", () =>
+    expect(
+      deriveView({
+        session: s({ recording: true }),
+        stats: { ...emptyStats(), count: 2 },
+        tabUrl: `${A}/`,
+        consented: false,
+      }).consent,
+    ).toBe(false));
 });
 
 test("copy is verbatim", () => {
@@ -138,6 +166,9 @@ test("copy is verbatim", () => {
   expect(COPY.DOWNLOAD).toBe("The download didn't finish. Try again.");
   expect(COPY.other(A)).toBe(
     "Download or clear the https://app.example.com captures first.",
+  );
+  expect(COPY.CONSENT).toBe(
+    "Creel keeps the JSON responses a site makes while you record it, with their URLs and request bodies. These can hold whatever the site returns, including personal data and credentials. All of it stays on this device until you download or clear it, and Creel sends it nowhere.",
   );
   expect(COPY.denied(A)).toBe(
     "Creel needs access to https://app.example.com to record it.",

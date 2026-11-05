@@ -1,0 +1,49 @@
+name: publish
+
+# Started by hand. Uploads a release's package to the Chrome Web Store item and, only when
+# "submit" is ticked, submits it for review. Add required reviewers to the chrome-web-store
+# environment for a second yes.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag whose creel.zip to upload (for example v0.2.0)
+        required: true
+        type: string
+      submit:
+        description: Submit for review after the upload (otherwise it only uploads a draft)
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: chrome-web-store
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Download the release package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern creel.zip
+      - name: Upload to the Chrome Web Store
+        run: ./scripts/publish-chrome-webstore.sh creel.zip
+        env:
+          CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          PUBLISH: ${{ inputs.submit && 'true' || 'false' }}

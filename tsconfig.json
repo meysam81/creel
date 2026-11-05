@@ -33,7 +33,9 @@
   ],
   "include": [
     "src/**/*.ts",
+    "e2e/**/*.ts",
     "manifest.ts",
-    "vite.config.ts"
+    "vite.config.ts",
+    "playwright.config.ts"
   ]
 }

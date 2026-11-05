@@ -97,6 +97,21 @@ body {
   color: var(--color-text-muted);
 }
 
+.consent {
+  margin-top: var(--space-3);
+}
+
+.consent-text {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.consent .btn {
+  width: 100%;
+}
+
 .actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -160,6 +175,10 @@ body {
   font-size: var(--text-sm);
   text-decoration: underline;
   cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 button:disabled {

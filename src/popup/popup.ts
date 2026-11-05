@@ -1,3 +1,4 @@
+import { CONSENT_KEY, hasConsent } from "../lib/consent";
 import { openDb, readStats } from "../lib/db";
 import { recordableOrigin } from "../lib/site";
 import type { Command, Session } from "../lib/types";
@@ -16,6 +17,11 @@ const ui = {
   download: byId<HTMLButtonElement>("download"),
   clear: byId<HTMLButtonElement>("clear"),
   message: byId("message"),
+  consent: byId("consent"),
+  consentText: byId("consent-text"),
+  accept: byId<HTMLButtonElement>("accept"),
+  actions: byId("actions"),
+  footer: byId("footer"),
 };
 
 const dbReady = openDb();
@@ -61,12 +67,24 @@ function recentRow(name: string, capturedAt: string): HTMLLIElement {
 }
 
 async function render(): Promise<void> {
-  const [{ session: stored }, stats] = await Promise.all([
-    chrome.storage.local.get("session"),
-    dbReady.then(readStats),
-  ]);
+  const [{ session: stored, [CONSENT_KEY]: accepted }, stats] =
+    await Promise.all([
+      chrome.storage.local.get(["session", CONSENT_KEY]),
+      dbReady.then(readStats),
+    ]);
   session = (stored as Session | undefined) ?? null;
-  view = deriveView({ session, stats, tabUrl });
+  view = deriveView({
+    session,
+    stats,
+    tabUrl,
+    consented: hasConsent(accepted),
+  });
+
+  ui.consent.hidden = !view.consent;
+  ui.consentText.textContent = COPY.CONSENT;
+  ui.accept.textContent = COPY.ACCEPT;
+  ui.actions.hidden = view.consent;
+  ui.footer.hidden = view.consent;
 
   renderPill();
   ui.origin.textContent = view.origin ?? "";
@@ -118,11 +136,12 @@ ui.primary.addEventListener("click", async () => {
   await send({ type: "record", origin });
 });
 
+ui.accept.addEventListener("click", () => send({ type: "consent" }));
 ui.download.addEventListener("click", () => send({ type: "download" }));
 ui.clear.addEventListener("click", () => send({ type: "clear" }));
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && "session" in changes) {
+  if (area === "local" && ("session" in changes || CONSENT_KEY in changes)) {
     render().catch(() => undefined);
   }
 });
