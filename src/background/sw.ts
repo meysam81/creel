@@ -1,6 +1,7 @@
 // Service worker: the only writer. Owns the session, the capture scripts, IndexedDB, the badge and the download.
 import { addCapture, addSkipped, clearAll, openDb, readStats } from "../lib/db";
 import { acceptCapture } from "../lib/accept";
+import { CONSENT_KEY, consentRecord, hasConsent } from "../lib/consent";
 import { zipBase } from "../lib/names";
 import {
   needsRegister,
@@ -108,7 +109,15 @@ async function injectInto(origin: string, withPage: boolean): Promise<void> {
   );
 }
 
+async function consent(): Promise<void> {
+  await chrome.storage.local.set({ [CONSENT_KEY]: consentRecord(new Date()) });
+}
+
 async function record(origin: string): Promise<void> {
+  const stored = await chrome.storage.local.get(CONSENT_KEY);
+  if (!hasConsent(stored[CONSENT_KEY])) {
+    return; // the popup shows the notice first; a record command without it is ignored
+  }
   const session = await getSession();
   const stats = await readStats(await db());
   const plan = planRecord(session, stats.count, origin);
@@ -264,6 +273,9 @@ function commandTask(command: Command): () => Promise<void> {
     }
     case "clear": {
       return clear;
+    }
+    case "consent": {
+      return consent;
     }
     default: {
       return download;

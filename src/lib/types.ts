@@ -45,6 +45,7 @@ export type Command =
   | { type: "record"; origin: string }
   | { type: "stop" }
   | { type: "clear" }
+  | { type: "consent" }
   | { type: "download" };
 
 export type WorkerMessage =
