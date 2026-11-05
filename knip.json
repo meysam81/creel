@@ -4,12 +4,14 @@
     "src/background/sw.ts",
     "src/popup/popup.ts",
     "src/capture/page.ts",
-    "src/capture/relay.ts"
+    "src/capture/relay.ts",
+    "e2e/*.spec.ts"
   ],
   "ignoreDependencies": [
     "prettier"
   ],
   "project": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "e2e/**/*.ts"
   ]
 }

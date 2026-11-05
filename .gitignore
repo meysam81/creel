@@ -36,3 +36,11 @@ logs
 
 # local design notes
 docs/superpowers
+
+# Playwright
+test-results
+playwright-report
+
+# promo video renders
+video/out
+*.mp4
