@@ -19,7 +19,7 @@ TypeScript (strict), Vite 8 + @crxjs/vite-plugin 3, bun (package manager and
 - `src/offscreen/`: builds the ZIP (`lib/zip.ts`) and returns a blob URL.
 - `src/popup/`: renders the pure view model in `state.ts` (all copy in `COPY`).
 - `src/lib/`: `types.ts`, `names.ts`, `site.ts`, `messages.ts`, `db.ts`,
-  `zip.ts`.
+  `zip.ts`, `consent.ts`, `accept.ts`, `same-site.ts`.
 - `src/styles/tokens.css`: design tokens.
 
 `page.js` and `relay.js` are built by `bun build --format=iife` into
@@ -27,10 +27,21 @@ TypeScript (strict), Vite 8 + @crxjs/vite-plugin 3, bun (package manager and
 
 ## Commands
 
-`bun run build | start | test | typecheck | check`, `just dist`, `just pack`.
+`bun run build | start | test | typecheck | check | e2e`, `just dist`, `just pack`.
+`bun test` runs `src/` only (bunfig); `bun run e2e` loads `dist/` in Playwright's
+Chromium (`bunx playwright install chromium` once).
 
 ## Rules
 
+- Same-site matching has two parts: `site.ts` `maybeSameSite` (last two labels,
+  a superset, the only one allowed in the page and relay scripts) and
+  `same-site.ts` (public suffix list via tldts, worker only). Never import
+  tldts or `same-site.ts` from `src/capture/`: it would add ~100 kB to every
+  recorded page.
+- Recording needs the first-run consent (`consent.ts`, versioned): bump
+  `CONSENT_VERSION` whenever the notice's meaning changes.
+- Releases never publish: `publish.yml` is run by hand. e2e hosts are granted in
+  a throwaway copy of `dist/` only.
 - The worker is the only writer; popup and offscreen only read.
 - Page wrappers never change what the page sees: return the page's own
   Response, swallow every capture error.

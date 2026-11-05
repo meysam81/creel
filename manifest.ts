@@ -9,10 +9,11 @@ const icons = {
 
 export default defineManifest({
   manifest_version: 3,
-  name: "Creel",
+  name: "Creel: API Response Recorder",
+  short_name: "Creel",
   version: pkg.version,
   description:
-    "Record a site's API responses as you browse, then download them as one ZIP.",
+    "Record a site's JSON API responses as you browse, then download them as one ZIP. Kept in your browser until you save.",
   minimum_chrome_version: "123",
   action: {
     default_popup: "src/popup/popup.html",
