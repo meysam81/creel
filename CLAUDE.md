@@ -32,7 +32,8 @@ TypeScript (strict), Vite 8 + @crxjs/vite-plugin 3, bun (package manager and
 promo into `store/video/`. Both are build output: CI captures the images on every run and
 each release attaches them as `creel-store-images.zip`.
 `bun test` runs `src/` only (bunfig); `bun run e2e` loads `dist/` in Playwright's
-Chromium (`bunx playwright install chromium` once).
+Chromium: `direnv allow` once on NixOS (`flake.nix` provides it), elsewhere
+`bunx playwright install chromium` once.
 
 ## Rules
 
@@ -43,6 +44,8 @@ Chromium (`bunx playwright install chromium` once).
   recorded page.
 - Recording needs the first-run consent (`consent.ts`, versioned): bump
   `CONSENT_VERSION` whenever the notice's meaning changes.
+- `@playwright/test` and the nixpkgs commit in `flake.nix` carry the same Playwright
+  version: bump them together. Renovate is off for both.
 - Releases never publish: `publish.yml` is run by hand. e2e hosts are granted in
   a throwaway copy of `dist/` only.
 - The worker is the only writer; popup and offscreen only read.
