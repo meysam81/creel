@@ -100,7 +100,7 @@ All of it stays on the device.
 ### Test instructions
 
 ```plaintext
-No account needed. 1. Open https://jsonplaceholder.typicode.com/ and click the Creel icon, then press "I understand". 2. Press Record and allow access to the site. 3. In the page's DevTools console run: fetch('/todos/1').then(r => r.json()) . The badge shows 1. 4. Open the Creel popup and press Download ZIP: the ZIP in Downloads/creel/ holds todos-1... as 1.json and _requests.json. A fetch to another site (for example https://api.github.com/) is not recorded.
+No account needed. 1. Open https://jsonplaceholder.typicode.com/ and click the Creel icon, then press "I understand". 2. Press Record and allow access to the site. 3. In the page's DevTools console run: fetch('/todos/1').then(r => r.json()) . The badge shows 1. 4. Open the Creel popup and press Download ZIP: the ZIP in Downloads/creel/ holds todos-1... as 1.json and _requests.json. A fetch to another site (for example https://api.github.com/) is not recorded. The service worker bundles the tldts library (MIT) for the public suffix list. Its long text string is that list of domain suffixes, not encoded code.
 ```
 
 ## Microsoft Edge Add-ons
@@ -131,7 +131,7 @@ Privacy: while you record, the responses, URLs and text request bodies of the we
 ### Notes for certification
 
 ```plaintext
-No account needed. 1. Open https://jsonplaceholder.typicode.com/, click the Creel icon and press "I understand" (the first-run consent screen). 2. Press Record and allow access to the site. 3. In the page's DevTools console run: fetch('/todos/1').then(r => r.json()) . The badge shows 1. 4. Press Download ZIP in the popup. Requests to other sites are not recorded.
+No account needed. 1. Open https://jsonplaceholder.typicode.com/, click the Creel icon and press "I understand" (the first-run consent screen). 2. Press Record and allow access to the site. 3. In the page's DevTools console run: fetch('/todos/1').then(r => r.json()) . The badge shows 1. 4. Press Download ZIP in the popup. Requests to other sites are not recorded. The service worker bundles the tldts library (MIT) for the public suffix list. Its long text string is that list of domain suffixes, not encoded code.
 ```
 
 ## Firefox AMO
