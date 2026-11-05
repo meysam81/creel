@@ -47,7 +47,7 @@ Note: captures travel from the page script to the relay by `window.postMessage(m
 
 ## Data
 
-Everything the extension reads, sends or stores, on the device included. Boxes stay `Undecided` until the owner decides after reading each tooltip.
+Everything the extension reads, sends or stores, on the device included. Boxes stay `Undecided` until the owner decides, having read the descriptions under "Dashboard wording".
 
 | What is handled                                                                                                                                                                        | Where it goes                                                           | Shows which sites the user is on? | Store box | Why                                                                                                                                                      |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -77,12 +77,22 @@ Stored unencrypted: IndexedDB and `chrome.storage.local` are not encrypted by th
 
 ## Dashboard wording
 
-Not read. Names below are from memory and unverified.
+Read from the dashboard form on 2026-11-05 (sent by the owner). The form is not a tooltip: each box has its description beside it.
 
-| Box                                             | Tooltip, word for word | Read on  |
-| ----------------------------------------------- | ---------------------- | -------- |
-| Web history (candidate)                         | UNREAD                 | not read |
-| Website content (candidate)                     | UNREAD                 | not read |
-| Authentication information (candidate)          | UNREAD                 | not read |
-| Personally identifiable information (candidate) | UNREAD                 | not read |
-| Personal communications (candidate)             | UNREAD                 | not read |
+Heading: "What user data do you plan to collect from users now or in the future?" The form says the answer "will be displayed publicly on the item detail page", and that by publishing you certify the disclosures "reflect the most up-to-date content of your privacy policy."
+
+| Box                                 | Description beside the box, word for word                                                                 | Read on    |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------- |
+| Personally identifiable information | For example: name, address, email address, age, or identification number                                  | 2026-11-05 |
+| Health information                  | For example: heart rate data, medical history, symptoms, diagnoses, or procedures                         | 2026-11-05 |
+| Financial and payment information   | For example: transactions, credit card numbers, credit ratings, financial statements, or payment history  | 2026-11-05 |
+| Authentication information          | For example: passwords, credentials, security question, or personal identification number (PIN)           | 2026-11-05 |
+| Personal communications             | For example: emails, texts, or chat messages                                                              | 2026-11-05 |
+| Location                            | For example: region, IP address, GPS coordinates, or information about things near the user's device      | 2026-11-05 |
+| Web history                         | The list of web pages a user has visited, as well as associated data such as page title and time of visit | 2026-11-05 |
+| User activity                       | For example: network monitoring, clicks, mouse position, scroll, or keystroke logging                     | 2026-11-05 |
+| Website content                     | For example: text, images, sounds, videos, or hyperlinks                                                  | 2026-11-05 |
+
+Certifications, all three required: "I do not sell or transfer user data to third parties, outside of the approved use cases"; "I do not use or transfer user data for purposes that are unrelated to my item's single purpose"; "I do not use or transfer user data to determine creditworthiness or for lending purposes".
+
+Candidates for Creel (inference, not decided): User activity names "network monitoring", which is what a fetch and XHR recorder does; Web history (request and page URLs, with time); Website content (response bodies); Authentication information, Personally identifiable information, Personal communications and Financial and payment information only if the recorded site's responses carry them, which Creel cannot know. All stay `Undecided` until the owner decides.

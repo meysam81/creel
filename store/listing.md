@@ -86,7 +86,7 @@ No. All code ships in the package; Creel makes no network request of its own.
 ### Data usage
 
 ```plaintext
-Undecided: the owner has not yet sent the dashboard tooltip wording. Data handled (see store/facts.md): response bodies, request URLs and text request bodies of the recorded site, the page address, the site chosen, and the recording state. All of it stays on the device. Candidate boxes: Web history, Website content, Personally identifiable information, Authentication information, Personal communications. Certifications: tick all three only when each is true: not sold to third parties, not used for purposes unrelated to the single purpose, not used for creditworthiness or lending.
+Undecided: the owner decides after reading the dashboard descriptions (recorded in store/facts.md). Data handled (see store/facts.md): response bodies, request URLs and text request bodies of the recorded site, the page address, the site chosen, and the recording state. All of it stays on the device. Candidate boxes: User activity, Web history, Website content, and, because recorded responses can carry them, Authentication information, Personally identifiable information, Personal communications, Financial and payment information. Certifications: tick all three only when each is true: not sold to third parties, not used for purposes unrelated to the single purpose, not used for creditworthiness or lending.
 ```
 
 ### Test instructions
