@@ -161,8 +161,10 @@ jobs:
             *" failure "* | *" cancelled "*) exit 1 ;;
           esac
 
+  # pr-title is skipped on a push, and a skip passes down the whole needs chain unless the
+  # `if` says otherwise, so this job and the next must name the result they depend on.
   release-please:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: ${{ !cancelled() && needs.required.result == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: [required]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -184,8 +186,7 @@ jobs:
   # Attaches the package to the GitHub release. It never talks to the Web Store: submitting is
   # the manual publish workflow, so a release cannot reach users without a person starting it.
   release-assets:
-    # no-op until the Web Store item exists and its secrets and CHROME_EXTENSION_ID variable are set
-    if: needs.release-please.outputs.releases_created == 'true' && vars.CHROME_EXTENSION_ID != ''
+    if: ${{ !cancelled() && needs.release-please.outputs.releases_created == 'true' && needs.build.result == 'success' }}
     needs: [release-please, build]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -199,14 +200,21 @@ jobs:
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: dist
-      - name: Install crx3
+      - id: signing
+        name: Check for a signing key
+        env:
+          CHROME_SIGNING_PRIVATE_KEY: ${{ secrets.CHROME_SIGNING_PRIVATE_KEY }}
+        run: echo "key=${CHROME_SIGNING_PRIVATE_KEY:+yes}" >> "$GITHUB_OUTPUT"
+      - if: steps.signing.outputs.key == 'yes'
+        name: Install crx3
         env:
           # renovate: go=github.com/mediabuyerbot/go-crx3
           CRX3_VERSION: v1.7.1
         run: |
           go install "github.com/mediabuyerbot/go-crx3/crx3@${CRX3_VERSION}"
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-      - name: Write signing key
+      - if: steps.signing.outputs.key == 'yes'
+        name: Write signing key
         env:
           CHROME_SIGNING_PRIVATE_KEY: ${{ secrets.CHROME_SIGNING_PRIVATE_KEY }}
         run: |
@@ -217,7 +225,8 @@ jobs:
             echo "Convert with: openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in old.pem -out new.pem"
             exit 1
           }
-      - name: Sign Chrome extension
+      - if: steps.signing.outputs.key == 'yes'
+        name: Sign Chrome extension
         run: |
           crx3 pack dist -p key.pem -o creel.crx
           ls -lh creel.crx
@@ -229,7 +238,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
-        run: gh release upload "$TAG_NAME" creel.crx creel.zip --clobber
+        run: |
+          assets=(creel.zip)
+          if [ -f creel.crx ]; then assets+=(creel.crx); fi
+          gh release upload "$TAG_NAME" "${assets[@]}" --clobber
       - if: always()
         name: Cleanup
         run: rm -f key.pem
