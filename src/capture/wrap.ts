@@ -1,4 +1,4 @@
-import { looksLikeJson, sameSite } from "../lib/site";
+import { looksLikeJson, maybeSameSite } from "../lib/site";
 import type { PageMessage } from "../lib/types";
 
 /** Bodies longer than this are counted as skipped, never sent (runtime messages cap at 64 MiB). */
@@ -37,7 +37,7 @@ function resolve(ctx: PageCtx, raw: string): URL | null {
 function emit(ctx: PageCtx, req: Req, status: number, text: string): void {
   try {
     if (text.length > MAX_BODY_CHARS) {
-      ctx.post({ source: "creel", kind: "skipped" });
+      ctx.post({ source: "creel", kind: "skipped", url: req.url });
       return;
     }
     if (!looksLikeJson(text)) {
@@ -65,7 +65,7 @@ interface Pending {
 
 function captureResponse(ctx: PageCtx, target: Pending, res: Response): void {
   if (Number(res.headers.get("content-length")) > MAX_BODY_CHARS) {
-    ctx.post({ source: "creel", kind: "skipped" });
+    ctx.post({ source: "creel", kind: "skipped", url: target.url });
     return;
   }
   if (BINARY.test(res.headers.get("content-type") ?? "")) {
@@ -95,7 +95,7 @@ export function wrapFetch(fetch0: typeof fetch, ctx: PageCtx): typeof fetch {
     try {
       const request = input instanceof Request ? input : null;
       const url = resolve(ctx, request ? request.url : String(input));
-      if (url && sameSite(ctx.location.hostname, url.hostname)) {
+      if (url && maybeSameSite(ctx.location.hostname, url.hostname)) {
         const method = (init?.method ?? request?.method ?? "GET").toUpperCase();
         let body = Promise.resolve(requestBodyText(init?.body));
         if (request && method !== "GET" && init?.body === undefined) {
@@ -174,7 +174,7 @@ export function patchXhr(proto: XMLHttpRequest, ctx: PageCtx): void {
     try {
       const meta = opened.get(this);
       const url = meta ? resolve(ctx, meta.url) : null;
-      if (meta && url && sameSite(ctx.location.hostname, url.hostname)) {
+      if (meta && url && maybeSameSite(ctx.location.hostname, url.hostname)) {
         inFlight.set(this, {
           url: url.href,
           method: meta.method,

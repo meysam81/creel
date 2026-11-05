@@ -11,17 +11,23 @@ function exactOnly(host: string): boolean {
   );
 }
 
-// ponytail: last-two-labels; multi-part TLDs (example.co.uk) match the whole co.uk. Upgrade: public-suffix list.
-/** Whether a request host belongs to the same site as the page host. */
-export function sameSite(pageHost: string, reqHost: string): boolean {
-  if (pageHost === reqHost) {
+/**
+ * The page script's cheap prefilter: same host, or the same last two labels. It accepts
+ * everything `sameSite` (same-site.ts, public suffix list) accepts and more, so a
+ * wrongly accepted capture is dropped by the service worker. The list stays out of
+ * the page. Takes `URL.hostname` values (lowercase, punycode).
+ */
+export function maybeSameSite(pageHost: string, reqHost: string): boolean {
+  const a = pageHost.replace(/\.$/, "");
+  const b = reqHost.replace(/\.$/, "");
+  if (a === b) {
     return true;
   }
-  if (exactOnly(pageHost) || exactOnly(reqHost)) {
+  if (exactOnly(a) || exactOnly(b)) {
     return false;
   }
   const site = (host: string) => host.split(".").slice(-2).join(".");
-  return site(pageHost) === site(reqHost);
+  return site(a) === site(b);
 }
 
 /** A JSON object or array (not a bare string or number). */

@@ -1,4 +1,4 @@
-import type { CaptureInput, PageMessage, Session } from "./types";
+import type { CaptureInput, PageMessage } from "./types";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -20,21 +20,11 @@ export function parsePageMessage(data: unknown): PageMessage | null {
   if (!isObject(data) || data.source !== "creel") {
     return null;
   }
-  if (data.kind === "skipped") {
+  if (data.kind === "skipped" && typeof data.url === "string") {
     return data as PageMessage;
   }
   if (data.kind === "capture" && isCaptureInput(data.capture)) {
     return data as PageMessage;
   }
   return null;
-}
-
-/** The worker keeps a capture only while recording, and only from the recorded origin. */
-export function acceptCapture(
-  session: Session | null,
-  senderOrigin: string | undefined,
-): boolean {
-  return (
-    session !== null && session.recording && senderOrigin === session.origin
-  );
 }

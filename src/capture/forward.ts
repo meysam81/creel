@@ -21,12 +21,14 @@ export function makeRelay(deps: RelayDeps): (data: unknown) => void {
     const out: WorkerMessage =
       msg.kind === "capture"
         ? { type: "capture", capture: msg.capture }
-        : { type: "skipped" };
+        : { type: "skipped", url: msg.url };
     const lost = (tooLarge: boolean) => {
       if (!deps.alive()) {
         deps.stop();
       } else if (tooLarge && out.type === "capture") {
-        deps.send({ type: "skipped" }).catch(() => undefined);
+        deps
+          .send({ type: "skipped", url: out.capture.url })
+          .catch(() => undefined);
       }
     };
     try {

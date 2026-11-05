@@ -1,6 +1,6 @@
 // Service worker: the only writer. Owns the session, the capture scripts, IndexedDB, the badge and the download.
 import { addCapture, addSkipped, clearAll, openDb, readStats } from "../lib/db";
-import { acceptCapture } from "../lib/messages";
+import { acceptCapture } from "../lib/accept";
 import { zipBase } from "../lib/names";
 import {
   needsRegister,
@@ -156,9 +156,10 @@ async function clear(): Promise<void> {
 
 async function capture(
   input: CaptureInput | null,
+  requestUrl: string,
   senderOrigin: string | undefined,
 ): Promise<void> {
-  if (!acceptCapture(await getSession(), senderOrigin)) {
+  if (!acceptCapture(await getSession(), senderOrigin, requestUrl)) {
     return;
   }
   try {
@@ -321,9 +322,9 @@ chrome.runtime.onMessage.addListener(
   (msg: WorkerMessage, sender, sendResponse) => {
     let task: (() => Promise<void>) | null = null;
     if (msg.type === "capture") {
-      task = () => capture(msg.capture, sender.origin);
+      task = () => capture(msg.capture, msg.capture.url, sender.origin);
     } else if (msg.type === "skipped") {
-      task = () => capture(null, sender.origin);
+      task = () => capture(null, msg.url, sender.origin);
     } else if (sender.url?.startsWith(chrome.runtime.getURL(""))) {
       // commands come only from extension pages (the popup), never from a content script
       task = commandTask(msg);

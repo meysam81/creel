@@ -101,7 +101,13 @@ describe("wrapFetch", () => {
     );
     await wrapped("/big");
     await tick();
-    expect(posts).toEqual([{ source: "creel", kind: "skipped" }]);
+    expect(posts).toEqual([
+      {
+        source: "creel",
+        kind: "skipped",
+        url: "https://app.example.com/big",
+      },
+    ]);
   });
 });
 
@@ -116,7 +122,13 @@ describe("wrapFetch on large and binary responses", () => {
     );
     await wrapped("/export");
     await tick();
-    expect(posts).toEqual([{ source: "creel", kind: "skipped" }]);
+    expect(posts).toEqual([
+      {
+        source: "creel",
+        kind: "skipped",
+        url: "https://app.example.com/export",
+      },
+    ]);
   });
 
   test("binary content types are not read", async () => {

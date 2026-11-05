@@ -60,7 +60,7 @@ describe("makeRelay", () => {
       return Promise.resolve();
     });
     relay(msg);
-    expect(sent.at(-1)).toEqual({ type: "skipped" });
+    expect(sent.at(-1)).toEqual({ type: "skipped", url: expect.any(String) });
     expect(stopped()).toBe(false);
   });
 

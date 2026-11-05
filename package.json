@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "fflate": "^0.8.3"
+    "fflate": "^0.8.3",
+    "tldts": "7.4.19"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^3.0.0",

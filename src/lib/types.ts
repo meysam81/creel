@@ -39,7 +39,7 @@ export interface Session {
 
 export type PageMessage =
   | { source: "creel"; kind: "capture"; capture: CaptureInput }
-  | { source: "creel"; kind: "skipped" };
+  | { source: "creel"; kind: "skipped"; url: string };
 
 export type Command =
   | { type: "record"; origin: string }
@@ -48,7 +48,9 @@ export type Command =
   | { type: "download" };
 
 export type WorkerMessage =
-  Command | { type: "capture"; capture: CaptureInput } | { type: "skipped" };
+  | Command
+  | { type: "capture"; capture: CaptureInput }
+  | { type: "skipped"; url: string };
 
 export type OffscreenMessage =
   | { type: "offscreen-zip"; base: string }
