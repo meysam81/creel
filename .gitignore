@@ -52,3 +52,4 @@ video/public/captures.json
 store/video/
 # rendered by `bun run store`; each release attaches a fresh set
 store/screenshots/
+.envrc
