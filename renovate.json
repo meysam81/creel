@@ -1,4 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>meysam81/.github"]
+  "extends": ["github>meysam81/.github"],
+  "nix": {
+    "enabled": false
+  },
+  "packageRules": [
+    {
+      "description": "Bumped by hand with the nixpkgs commit in flake.nix: the two must match",
+      "matchPackageNames": ["@playwright/test"],
+      "enabled": false
+    }
+  ]
 }
