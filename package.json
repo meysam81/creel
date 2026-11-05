@@ -27,5 +27,5 @@
     "video": "bun run build && VIDEO=1 playwright test e2e/video.spec.ts && cd video && bun install --frozen-lockfile && bun run render"
   },
   "type": "module",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
