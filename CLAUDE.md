@@ -27,7 +27,10 @@ TypeScript (strict), Vite 8 + @crxjs/vite-plugin 3, bun (package manager and
 
 ## Commands
 
-`bun run build | start | test | typecheck | check | e2e`, `just dist`, `just pack`.
+`bun run build | start | test | typecheck | check | e2e | store | video`, `just dist`,
+`just pack`. `store` renders the store images into `store/screenshots/`, and `video` the
+promo into `store/video/`. Both are build output: CI captures the images on every run and
+each release attaches them as `creel-store-images.zip`.
 `bun test` runs `src/` only (bunfig); `bun run e2e` loads `dist/` in Playwright's
 Chromium (`bunx playwright install chromium` once).
 

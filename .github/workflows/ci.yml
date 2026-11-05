@@ -109,6 +109,19 @@ jobs:
         run: bun run build
       - name: End-to-end tests
         run: bun run e2e
+      # The capture specs skip themselves otherwise, so a UI change could break them unseen.
+      # Every run keeps the images, for review on a PR and for the next release.
+      - name: Capture the store images
+        run: STORE=1 STORE_DIR=store-images bunx playwright test e2e/store.spec.ts
+      - name: Check the video captures
+        run: VIDEO=1 bunx playwright test e2e/video.spec.ts
+      - name: Keep the store images
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.0
+        with:
+          name: store-images-${{ github.sha }}
+          path: store-images
+          if-no-files-found: error
+          retention-days: 14
       - if: failure()
         name: Upload test results
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -186,8 +199,8 @@ jobs:
   # Attaches the package to the GitHub release. It never talks to the Web Store: submitting is
   # the manual publish workflow, so a release cannot reach users without a person starting it.
   release-assets:
-    if: ${{ !cancelled() && needs.release-please.outputs.releases_created == 'true' && needs.build.result == 'success' }}
-    needs: [release-please, build]
+    if: ${{ !cancelled() && needs.release-please.outputs.releases_created == 'true' && needs.build.result == 'success' && needs.e2e.result == 'success' }}
+    needs: [release-please, build, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -200,6 +213,11 @@ jobs:
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: dist
+      - name: Download the store images
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: store-images-${{ github.sha }}
+          path: store-images
       - id: signing
         name: Check for a signing key
         env:
@@ -234,12 +252,16 @@ jobs:
         run: |
           (cd dist && zip -r ../creel.zip .)
           ls -lh creel.zip
+      - name: Create ZIP of the store images
+        run: |
+          (cd store-images && zip -r ../creel-store-images.zip .)
+          ls -lh creel-store-images.zip
       - name: Upload release assets
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
         run: |
-          assets=(creel.zip)
+          assets=(creel.zip creel-store-images.zip)
           if [ -f creel.crx ]; then assets+=(creel.crx); fi
           gh release upload "$TAG_NAME" "${assets[@]}" --clobber
       - if: always()
